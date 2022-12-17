@@ -1,0 +1,175 @@
+Postman is interesting. simple, but allows for comprehensive testing while setting up different html methods.
+
+
+You can add attributes to tables and as long as you allow default values, all of the previous entries will
+be updated with the default values. 
+
+Under "constraints" enter now() to refer to the current time and pass that to the time attribute in your table.
+
+Right click on DB select query tool to run queries
+
+
+START SERVER COMMAND: uvicorn app.main:app --reload (the first app. is needed when its in a package)
+
+all passwords are "admin" so far	
+
+cursor_factory = RealDictCursor. This command makes postgres show the column name along with the data
+
+fastapi's execute function has built in string sanitization for SQL operations. Just use the %s placeholder followed
+by another parameter containing the actual variables
+
+
+Counterintuitively, integers must be passed to the execute function as strings. easy conversion to make.
+https://youtu.be/0sOvCWFmrtA?t=15774
+
+WEIRD NOTE: Sometimes, adding an extra comma in the execute argument fixes some bugs. IDK why. shit like
+this scares me.
+
+sql alchemy can create tables when they dont exist, but it isnt designed for modifying tables. I think something else does that. "Alembic" is a python extension for manipulating the tables of a database. Sql alchemy assumes you want to create a set and leave it alone. Need to delete the table and rerun the server to get around this. 
+
+Getting finished making the tables in sql 
+https://youtu.be/0sOvCWFmrtA?t=18030
+
+Moving on to queries
+(depends in fastapi is dependency injection. so far it allows us to recieve any error thrown by
+the dependency when used in a try block, then allows the session to end after the commands have been executed?)
+
+any time you want to perform any kind of database operations, we need to make sure we pass it into 
+the path operation function
+
+A database session will be created to handle every request to that specific api endpoint, and close whenever its 
+finished. 
+****A session represents the connection between an application and the relational database that stores its persistent objects.
+
+Im still not sure why this current querieing is using different syntax than just running a select * query. 
+Why do we need to include the session as a parameter now, unlike before. 
+Update... Okay, so the second time we used the db object instead of running a regular sql statement. Not
+sure why this way is better yet. will update. but the main answer is that there are multiple ways to do it.
+learn the implications of each. 
+update... this lets you not need to understand sql as well. 
+https://youtu.be/0sOvCWFmrtA?t=18402
+
+The database is a dependency for the path operations that interact with it, and the db object can be used
+to interact with sql. 
+
+Im now wondering how the data will be returned. Clearly I didnt go far enough into web dev. it seems
+pretty intuitive though. 
+
+db.refresh(newpost) should refresh the object with the information automatically added by the database. 
+https://youtu.be/0sOvCWFmrtA?t=18776
+
+Super handy trick that allows you to avoid entering every table parameter. Unpack the dict. Since its
+a pydantic model(I think) it will produce the necessary output for the query
+https://youtu.be/0sOvCWFmrtA?t=18898
+the ** is for "unpacking the dictionary which puts it into the correct format for sql alchemy
+
+pydantic model vs sql alchemy model. Pydantic is for request data validation, sql alchemy model represents
+a row of table data and is used to create the database. 
+https://youtu.be/0sOvCWFmrtA?t=19847
+
+An object-relational mapper (ORM) is a code library that automates the transfer of data stored in relational database tables into objects that are more commonly used in application code.
+
+this bit was confusing but the fix is pretty straightforward
+https://youtu.be/0sOvCWFmrtA?t=20640
+
+Weird one. Needed to import the List class(default python i think) to specify that the returned information should be
+in the form of a list containing instances of the pylance model. (ORM models are used by sql alchemy)
+https://youtu.be/0sOvCWFmrtA?t=20988
+
+Follow up on "unpacking" a dict and when/ why you would want to use it. the concept is a bit fuzzy
+
+VALIDATION
+pydantic models have a type of string specifically for emails
+
+PASSWORD HASHING: https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/
+need passlib and bcrypt libraries to start. 
+
+wow you really need to work on this more often. Youre too stoned late at night. time to start working in the
+morning. Wow i cant tell if its feeling more natural to touch type or if the keys im pressing are in patterns
+that im already used to.
+
+8/8
+learned about the router object. Use this instead of importing the app object from the main
+routes file.
+
+
+LATEST TIMESTAMP: https://www.youtube.com/watch?v=0sOvCWFmrtA&t=16074s
+
+Where i left off mentally
+https://youtu.be/0sOvCWFmrtA?t=23204
+
+Add group name for swaggerUI auto documentation(wow thats simple)
+https://youtu.be/0sOvCWFmrtA?t=23522
+
+watch union video. Seems like pretty basic python stuff. 
+
+
+11/1 
+JWT token authentication.
+- Stateless(no info stored on our backend) 
+
+I remember this stuff vaguely. This process allows the end user to store a token,
+provided to it by the API, and can return this simple token along with any request
+which can be used to easily verify if it is the actual user. If the token is modified in
+some way, it will be detected by the api.
+
+
+Installed python-jose package which is used to verify JWT tokens in python
+
+Were using the HS256 algo for hashing
+
+Need to specify the secret key, the algo and the expiration time in order to make a token
+
+Auth is a router file which handles any http requests associated with user authentication.
+
+Oauth2 contains functions that encode and decode jwt tokens and verify users. This is where it got somewhat tricky, 
+the Depends fast api function (used to connect to the db for each interaction so far) is used frequently to run the verification methods in the oauth2 file. The flow of data got somewhat tricky. 7:29
+
+Example and syntax of a bearer token sent as a header:
+Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMSwiZXhwIjoxNjcwMzc0OTIwfQ.9ikJGD6PokB0w4smaNY6TQpAigJF-S20R68p7a9YTTY
+
+WOW: I think I understand jwt validation and how to implement it. 
+
+Okay I think I understand depends. (just like it said in the docs) its what allows our multilayered web app to push
+error messages where theyre needed. If it werent used, errors from... nvm nvm. It cant be that simple.
+ You can depend functions FROM INSIDE THE PATH OPERATION FUNCTION. You cant do that normally. Not entirely sure
+why this is useful but im sure it will become clear soon. 
+
+You can simply add a new atttribute to a pydantic object via this syntax
+newpost = models.Post(owner_id=current_user.id, **post.dict()) owner ID will be a part of the ORM model now.
+
+You can set up "relationships" in sql alchemy that allows the application to show an associated piece of information
+in place of another (for example, a username instead of an id)
+And god damn is it simple. Im not totally sure if it needs to have an existing one to many relationship, but all you
+need to do is create a new variable in the sql alchemy model, and use the relationship function to associate it with
+the other model. Then you return the associated pydantic model from within the first... that got confusing, but like a lot
+of other aspects, the db models must mirror the pydantic models, I just didnt realize that you can return a pydantic
+model as a part of another pydantic model. 
+
+FUCKING OKAY: SHORTCUT ALT+ z makes lines wrap around so they wont extend too far out. jesus... all these years
+
+Joins and SQL STUFF: https://youtu.be/0sOvCWFmrtA?t=35889
+
+fucktard@gmail.com
+fucktard
+
+SELECT posts.*, COUNT(votes.post_id) as votes from posts LEFT JOIN votes on posts.id = votes.post_id group by posts.id;
+This statement will show the number of votes each post has. 
+
+{{URL}}posts?search=somethinglol
+example post request from postman. The ? allows you to pass variables into the function, to add more im pretty sure its &. The
+{{URL}} refers to a variable in postman that refers to my local URL. This is so it can easily be changed for all routes
+within postman. 
+
+JUST SET UP ALEMBIC. Imported the package with pip. initialized the package and used --help to get detailed use instructions for the init
+function. Specified the install location(local package was already there). Then imported the Base object (represents the instance of my sqlalchemy DB)
+into the main settings file(FROM THE MODELS FILE, OTHERWISE ALEMBIC WONT KNOW WHERE THE MODELS ARE. Then added the necessary info into the .ini file (included) that connects alembic to the database itself. 
+the sqlalch instance along with directing it to the database url.
+
+VOCAB: CRUD operations. Short for create read update delete. 
+
+Syntax/ guide: Alebmbic docs DDL internals. Contains the commands for working with tables and columns
+
+CORS
+
+
