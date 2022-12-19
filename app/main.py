@@ -27,6 +27,6 @@ app.include_router(vote.router)
 
 @app.get("/")
 def root(): #removed async keyword until its needed later
-    return {"message": "Hello World bitch fuck"}
+    return {"message": "Hello World"}
 
 
